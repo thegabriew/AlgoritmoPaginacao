@@ -1,0 +1,107 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int fifo(int pags[], int num_frames, int length) {
+    int frames[num_frames];
+    int fp = 0; // falta_de_pag
+    int fi = 0; // frame_idx
+
+    for (int i = 0; i < num_frames; i++) {
+        frames[i] = -1;
+    }
+
+    for (int i = 0; i < length; i++) {
+        int p = pags[i];
+        int fnd = 0; // found
+
+        for (int j = 0; j < num_frames; j++) {
+            if (frames[j] == p) {
+                fnd = 1;
+                break;
+            }
+        }
+
+        if (!fnd) {
+            if (fi < num_frames) {
+                frames[fi] = p;
+                fi++;
+            } else {
+                for (int j = 0; j < num_frames - 1; j++) {
+                    frames[j] = frames[j + 1];
+                }
+                frames[num_frames - 1] = p;
+            }
+            fp++;
+        }
+    }
+
+    return fp;
+}
+
+int lru(int pags[], int num_frames, int length) {
+    int frames[num_frames];
+    int fp = 0; // falta_de_pag
+
+    for (int i = 0; i < num_frames; i++) {
+        frames[i] = -1;
+    }
+
+    for (int i = 0; i < length; i++) {
+        int p = pags[i];
+        int fnd = 0; // found
+
+        for (int j = 0; j < num_frames; j++) {
+            if (frames[j] == p) {
+                fnd = 1;
+
+                for (int k = j; k < num_frames - 1; k++) {
+                    frames[k] = frames[k + 1];
+                }
+                frames[num_frames - 1] = p;
+
+                break;
+            }
+        }
+
+        if (!fnd) {
+            if (i < num_frames) {
+                frames[i] = p;
+            } else {
+                for (int j = 0; j < num_frames - 1; j++) {
+                    frames[j] = frames[j + 1];
+                }
+                frames[num_frames - 1] = p;
+            }
+            fp++;
+        }
+    }
+
+    return fp;
+}
+
+void gerarStringDeReferencia(int length, int reference_string[]) {
+    for (int i = 0; i < length; i++) {
+        reference_string[i] = rand() % 10;
+    }
+}
+
+int main() {
+    int length = 50;
+    int reference_string[length];
+    gerarStringDeReferencia(length, reference_string);
+
+    int nfl[] = {2, 3, 4, 5}; // num_frames_list
+    int nfl_size = sizeof(nfl) / sizeof(nfl[0]);
+
+    for (int i = 0; i < nfl_size; i++) {
+        int nf = nfl[i]; // num_frames
+        int fifo_faults = fifo(reference_string, nf, length);
+        int lru_faults = lru(reference_string, nf, length);
+
+        printf("Número de frames: %d\n", nf);
+        printf("FIFO Falta de páginas: %d\n", fifo_faults);
+        printf("LRU Falta de páginas: %d\n\n", lru_faults);
+    }
+
+    return 0;
+}
